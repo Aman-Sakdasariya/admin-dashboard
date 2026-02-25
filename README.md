@@ -3,7 +3,7 @@
 A responsive, frontend-only user management dashboard built with React and Tailwind CSS. This application fetches user data from a public API and allows administrators to search, add, edit, and delete users seamlessly.
 
 ## 🚀 Live Demo
-[Insert your Vercel/Netlify link here]
+[https://admindashboardbyaman.netlify.app/]
 
 ## 🛠️ Tech Stack & Tools Used
 * **Frontend Framework:** React.js (Functional Components & Hooks)
@@ -22,7 +22,7 @@ To run this project locally, follow these steps:
    \`\`\`
 2. **Navigate to the project directory:**
    \`\`\`bash
-   cd [your-folder-name]
+   cd (admin-dashboard)
    \`\`\`
 3. **Install dependencies:**
    \`\`\`bash
