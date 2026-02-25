@@ -18,7 +18,7 @@ To run this project locally, follow these steps:
 
 1. **Clone the repository:**
    \`\`\`bash
-   git clone [Insert your repo link here]
+   git clone (https://github.com/Aman-Sakdasariya/admin-dashboard)
    \`\`\`
 2. **Navigate to the project directory:**
    \`\`\`bash
