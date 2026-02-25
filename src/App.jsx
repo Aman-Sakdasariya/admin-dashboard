@@ -1,104 +1,82 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { useUsers } from './hooks/useUsers';
-import UserTable from './components/UserTable';
-import UserFormModal from './components/UserFormModal';
+import { useDebounce } from './hooks/useDebounce';
+
+import DashboardLayout from './components/DashboardLayout';
+import Toast from './components/Toast';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal';
-import Pagination from './components/Pagination';
+
+import LoginPage from './pages/LoginPage';
+import UsersListPage from './pages/UsersListPage';
+import AddEditUsersPage from './pages/AddEditUsersPage';
+import AnalyticsPage from './pages/AnalyticsPage';
+import SettingsPage from './pages/SettingsPage';
 
 const App = () => {
-  const { users, isLoading, error, deleteUser, addUser } = useUsers();
+  const { users, isLoading, error, deleteUser, addUser, editUser } = useUsers();
+  const navigate = useNavigate();
   
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   const [currentPage, setCurrentPage] = useState(1);
-  const usersPerPage = 5;
+  const usersPerPage = 5; 
 
   const filteredUsers = users.filter((user) => {
-    const lowerCaseQuery = searchQuery.toLowerCase();
-    return (
-      user.name.toLowerCase().includes(lowerCaseQuery) ||
-      user.email.toLowerCase().includes(lowerCaseQuery)
-    );
+    const lowerCaseQuery = debouncedSearchQuery.toLowerCase();
+    return user.name.toLowerCase().includes(lowerCaseQuery) || user.email.toLowerCase().includes(lowerCaseQuery);
   });
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchQuery]);
+  useEffect(() => { setCurrentPage(1); }, [debouncedSearchQuery]);
 
   const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
-  const startIndex = (currentPage - 1) * usersPerPage;
-  const paginatedUsers = filteredUsers.slice(startIndex, startIndex + usersPerPage);
-
-  const handleDeleteRequest = (userId) => {
-    setUserToDelete(userId);
-    setIsDeleteModalOpen(true);
-  };
+  const paginatedUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
   const handleConfirmDelete = () => {
     if (userToDelete) {
       deleteUser(userToDelete);
+      setToastMessage('User deleted successfully.');
     }
     setIsDeleteModalOpen(false);
     setUserToDelete(null);
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        
-        <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-            <p className="mt-1 text-sm text-gray-500">Manage user access and details.</p>
-          </div>
-          <button 
-            onClick={() => setIsModalOpen(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors shadow-sm font-medium"
-          >
-            + Add User
-          </button>
-        </div>
+    <>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
 
-        <div className="mb-6">
-          <input 
-            type="text" 
-            placeholder="Search by name or email..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full sm:w-1/2 md:w-1/3 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-sm"
-          />
-        </div>
+        <Route element={<DashboardLayout isMobileMenuOpen={isMobileMenuOpen} setIsMobileMenuOpen={setIsMobileMenuOpen} />}>
+          <Route path="/" element={
+            <UsersListPage 
+              searchQuery={searchQuery} onSearchChange={setSearchQuery} error={error} isLoading={isLoading}
+              paginatedUsers={paginatedUsers} currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage}
+              onAddClick={() => navigate('/add')} 
+              onEditClick={(user) => navigate('/edit', { state: { user } })} 
+              onDeleteClick={(id) => { setUserToDelete(id); setIsDeleteModalOpen(true); }}
+            />
+          } />
+          
+          <Route path="/add" element={
+            <AddEditUsersPage addUser={addUser} editUser={editUser} setToastMessage={setToastMessage} setCurrentPage={setCurrentPage} />
+          } />
+          <Route path="/edit" element={
+            <AddEditUsersPage addUser={addUser} editUser={editUser} setToastMessage={setToastMessage} setCurrentPage={setCurrentPage} />
+          } />
+          
+          <Route path="/analytics" element={<AnalyticsPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
+        </Route>
+      </Routes>
 
-        {error && (
-          <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded-md shadow-sm">
-             <div className="ml-3">
-                <p className="text-sm text-red-700 font-medium">Error loading users: {error}</p>
-             </div>
-          </div>
-        )}
-
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-          <UserTable 
-            users={paginatedUsers} 
-            isLoading={isLoading} 
-            onDelete={handleDeleteRequest} 
-          />
-        </div>
-
-        <Pagination 
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
-
-      </div>
-
-      <UserFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onAddUser={addUser} />
       <ConfirmDeleteModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onConfirm={handleConfirmDelete} />
-    </div>
+      <Toast message={toastMessage} onClose={() => setToastMessage('')} />
+    </>
   );
 };
 

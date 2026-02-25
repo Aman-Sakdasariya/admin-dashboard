@@ -1,9 +1,9 @@
 import React from 'react';
 import SkeletonRow from './SkeletonRow';
 
-const UserTable = ({ users, isLoading, onDelete }) => {
+const UserTable = ({ users, isLoading, onEdit, onDelete }) => {
   return (
-    <div className="overflow-x-auto shadow-md sm:rounded-lg">
+    <div className="overflow-x-auto sm:rounded-lg">
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -19,9 +19,7 @@ const UserTable = ({ users, isLoading, onDelete }) => {
             [...Array(5)].map((_, index) => <SkeletonRow key={index} />)
           ) : users.length === 0 ? (
             <tr>
-              <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
-                No users found.
-              </td>
+              <td colSpan="5" className="px-6 py-4 text-center text-gray-500">No users found.</td>
             </tr>
           ) : (
             users.map((user) => (
@@ -31,12 +29,20 @@ const UserTable = ({ users, isLoading, onDelete }) => {
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.company?.name || user.company}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{user.address?.city || user.city}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button
-                    onClick={() => onDelete(user.id)}
-                    className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors"
-                  >
-                    Delete
-                  </button>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      onClick={() => onEdit(user)}
+                      className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-md transition-colors"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => onDelete(user.id)}
+                      className="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1 rounded-md transition-colors"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))
